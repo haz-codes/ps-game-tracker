@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5f0">
+  <title>Save Point — PlayStation playtime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f5f0;
+      --surface: #fff;
+      --ink: #202820;
+      --muted: #848b82;
+      --line: #e9ebe5;
+      --forest: #173d31;
+      --forest-light: #244b3d;
+      --lime: #c4ef78;
+      --red: #ec654d;
+      --blue: #6a8fe8;
+      --art-green: linear-gradient(130deg, #718357, #233e32);
+      --art-castle: linear-gradient(130deg, #d19348, #733a34);
+      --art-sci-fi: linear-gradient(130deg, #598aa2, #263b55);
+      --art-red: linear-gradient(130deg, #ce7961, #652f38);
+      --art-blue: linear-gradient(130deg, #7898c7, #364568);
+      --radius: 9px;
+      font-family: 'DM Sans', sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 340px; min-height: 100vh; color: var(--ink); background: var(--paper); }
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid #7aa75a; outline-offset: 2px; }
+    .app { min-height: 100vh; }
+    .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 4; display: flex; flex-direction: column; width: 238px; padding: 28px 17px 19px; color: #edf2e8; background: var(--forest); }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 2px 10px 32px; font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 700; letter-spacing: -.4px; }
+    .brand-mark { display: grid; width: 32px; height: 32px; place-items: center; color: var(--forest); background: var(--lime); border-radius: 9px 9px 9px 3px; font-size: 15px; }
+    .brand small { display: block; margin-top: 1px; color: #9fb4a4; font-family: 'DM Mono', monospace; font-size: 9px; font-weight: 400; letter-spacing: 1.2px; text-transform: uppercase; }
+    .nav-label { padding: 0 11px 11px; color: #8ca293; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.3px; text-transform: uppercase; }
+    .nav { display: grid; gap: 5px; }
+    .nav button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border: 0; border-radius: 7px; color: #c1cec2; background: none; text-align: left; font-size: 13px; cursor: pointer; transition: background .16s, color .16s; }
+    .nav button:hover { color: white; background: #21483a; }
+    .nav button.active { color: var(--forest); background: var(--lime); font-weight: 700; }
+    .nav-icon { display: grid; width: 17px; height: 17px; place-items: center; font-size: 15px; }
+    .sidebar-bottom { margin-top: auto; }
+    .sidebar-note { margin: 0 5px 16px; padding: 14px; border: 1px solid #355647; border-radius: 7px; background: #1c4436; }
+    .sidebar-note .note-kicker { color: var(--lime); font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
+    .sidebar-note p { margin: 8px 0 0; color: #cad7ca; font-size: 11px; line-height: 1.6; }
+    .profile { display: flex; align-items: center; gap: 10px; padding: 15px 9px 0; border-top: 1px solid #355647; }
+    .avatar { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; color: var(--forest); background: #d9e8d6; font-size: 11px; font-weight: 700; }
+    .profile strong { display: block; font-size: 11px; font-weight: 600; }
+    .profile span { display: block; margin-top: 2px; color: #9fb4a4; font-size: 10px; }
+    .main { min-height: 100vh; margin-left: 238px; }
+    .topbar { position: sticky; top: 0; z-index: 3; display: flex; height: 66px; align-items: center; justify-content: space-between; padding: 0 43px; border-bottom: 1px solid var(--line); background: rgb(244 245 240 / 94%); backdrop-filter: blur(10px); }
+    .breadcrumb { color: var(--muted); font-size: 11px; }
+    .breadcrumb strong { color: var(--ink); font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 17px; }
+    .sync-state { display: flex; align-items: center; gap: 7px; color: #6d786d; font-size: 10px; }
+    .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #75b64e; }
+    .icon-button { display: grid; width: 33px; height: 33px; place-items: center; border: 1px solid var(--line); border-radius: 7px; color: #636c62; background: white; font-size: 15px; cursor: pointer; }
+    .content { width: min(1170px, 100%); margin: 0 auto; padding: 32px 43px 55px; }
+    .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 25px; }
+    .eyebrow { margin: 0 0 6px; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.3px; text-transform: uppercase; }
+    h1 { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 600; letter-spacing: -1px; }
+    .heading-sub { margin: 6px 0 0; color: var(--muted); font-size: 11px; }
+    .heading-actions { display: flex; gap: 8px; }
+    .button { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; gap: 7px; padding: 0 13px; border: 1px solid var(--line); border-radius: 6px; background: white; font-size: 11px; font-weight: 600; cursor: pointer; transition: transform .16s, background .16s; }
+    .button:hover { transform: translateY(-1px); }
+    .button-primary { border-color: var(--forest); color: white; background: var(--forest); }
+    .button-primary:hover { background: var(--forest-light); }
+    .button-lime { border-color: var(--lime); color: var(--forest); background: var(--lime); }
+    .button-plain { border-color: transparent; background: transparent; color: var(--muted); }
+    .button-small { min-height: 29px; padding: 0 9px; font-size: 10px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; margin-bottom: 15px; }
+    .stat-card { min-height: 112px; padding: 15px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); animation: rise .35s both; }
+    .stat-card:nth-child(2) { animation-delay: .05s; }
+    .stat-card:nth-child(3) { animation-delay: .1s; }
+    .stat-card:nth-child(4) { animation-delay: .15s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    .stat-top { display: flex; align-items: center; justify-content: space-between; }
+    .stat-label { color: var(--muted); font-size: 10px; font-weight: 500; }
+    .stat-symbol { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 6px; background: #edf3e9; font-size: 12px; }
+    .stat-value { margin-top: 12px; font-family: 'Space Grotesk', sans-serif; font-size: 25px; font-weight: 600; letter-spacing: -1px; }
+    .stat-unit { margin-left: 4px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 500; letter-spacing: 0; }
+    .stat-hint { margin-top: 3px; color: var(--muted); font-size: 9px; }
+    .middle-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(240px, .85fr); gap: 13px; margin-bottom: 14px; }
+    .panel { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .panel-header { display: flex; min-height: 57px; align-items: center; justify-content: space-between; gap: 12px; padding: 0 17px; border-bottom: 1px solid var(--line); }
+    .panel-title { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; }
+    .panel-kicker { margin: 3px 0 0; color: var(--muted); font-size: 9px; }
+    .period-label { color: #798278; font-family: 'DM Mono', monospace; font-size: 9px; }
+    .chart-body { height: 177px; padding: 14px 16px 13px; }
+    .chart { display: flex; height: 100%; justify-content: space-between; gap: 9px; }
+    .chart-day { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; }
+    .chart-number { min-height: 11px; color: #879087; font-family: 'DM Mono', monospace; font-size: 8px; }
+    .chart-track { display: flex; width: min(29px, 78%); height: 110px; align-items: flex-end; overflow: hidden; border-radius: 4px 4px 2px 2px; background: #f1f3ed; }
+    .chart-bar { width: 100%; min-height: 0; border-radius: 4px 4px 2px 2px; background: #a6d86d; transition: height .35s; }
+    .chart-bar.today { background: var(--forest); }
+    .chart-label { color: var(--muted); font-size: 8px; }
+    .chart-label.today { color: var(--forest); font-weight: 700; }
+    .top-game-list { display: grid; gap: 0; padding: 5px 16px; }
+    .top-game { display: flex; align-items: center; gap: 10px; padding: 9px 0; }
+    .game-cover { display: grid; width: 34px; height: 41px; flex: 0 0 auto; place-items: center; overflow: hidden; border-radius: 4px; color: white; background: var(--cover, var(--forest)); font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 700; }
+    .cover-castle { background: linear-gradient(145deg, #e4a451, #893a2f); }
+    .cover-sci-fi { background: linear-gradient(145deg, #5687a2, #293c54); }
+    .cover-green { background: linear-gradient(145deg, #9a9b61, #314c3f); }
+    .cover-red { background: linear-gradient(145deg, #d27d67, #652f38); }
+    .cover-blue { background: linear-gradient(145deg, #7697ca, #36496b); }
+    .library-art.cover-castle { background: var(--art-castle); }
+    .library-art.cover-sci-fi { background: var(--art-sci-fi); }
+    .library-art.cover-green { background: var(--art-green); }
+    .library-art.cover-red { background: var(--art-red); }
+    .library-art.cover-blue { background: var(--art-blue); }
+    .game-info { flex: 1; min-width: 0; }
+    .game-info strong { display: block; overflow: hidden; font-size: 10px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .game-info span { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
+    .game-hours { color: #414a40; font-family: 'DM Mono', monospace; font-size: 10px; white-space: nowrap; }
+    .activity-panel { overflow: hidden; }
+    .activity-header { display: flex; height: 56px; align-items: center; justify-content: space-between; padding: 0 17px; border-bottom: 1px solid var(--line); }
+    .activity-header h2 { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; }
+    .text-button { padding: 4px 0; border: 0; color: #617b57; background: transparent; font-size: 10px; font-weight: 600; cursor: pointer; }
+    .session-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .session-table th { height: 32px; padding: 0 17px; color: #969c92; font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 400; letter-spacing: .7px; text-transform: uppercase; }
+    .session-table td { height: 50px; padding: 0 17px; border-top: 1px solid #f0f1ed; font-size: 10px; }
+    .table-game { display: flex; align-items: center; gap: 9px; font-weight: 600; }
+    .table-game .game-cover { width: 25px; height: 29px; font-size: 8px; }
+    .platform-pill { padding: 4px 7px; border-radius: 4px; color: #54664f; background: #eff3ea; font-size: 8px; }
+    .table-duration { font-family: 'DM Mono', monospace; font-size: 9px; }
+    .table-action { color: #a0a59e; opacity: 0; }
+    tr:hover .table-action { opacity: 1; }
+    .empty-state { display: grid; min-height: 126px; place-content: center; justify-items: center; padding: 20px; text-align: center; }
+    .empty-state .empty-mark { display: grid; width: 31px; height: 31px; place-items: center; border-radius: 9px; color: var(--forest); background: #edf3e9; }
+    .empty-state strong { margin-top: 9px; font-size: 11px; }
+    .empty-state span { margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .view { display: none; }
+    .view.active { display: block; animation: rise .22s both; }
+    .library-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+    .search-wrap { position: relative; width: min(270px, 100%); }
+    .search-wrap input { width: 100%; height: 35px; padding: 0 11px 0 32px; border: 1px solid var(--line); border-radius: 6px; background: white; font-size: 10px; }
+    .search-mark { position: absolute; top: 9px; left: 11px; color: var(--muted); font-size: 13px; }
+    .library-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .library-card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: white; }
+    .custom-game-card { display: grid; min-height: 216px; align-content: center; justify-items: center; gap: 9px; padding: 18px; border: 1px dashed #cbd4c7; border-radius: var(--radius); color: var(--forest); background: #f8faf5; text-align: center; cursor: pointer; transition: border-color .16s, background .16s; }
+    .custom-game-card:hover { border-color: #78956b; background: #f0f5eb; }
+    .custom-game-plus { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: var(--forest); background: var(--lime); font-size: 22px; }
+    .custom-game-card strong { font-size: 11px; }
+    .custom-game-card span:last-child { color: var(--muted); font-size: 9px; }
+    .library-art { position: relative; display: flex; height: 107px; align-items: flex-end; overflow: hidden; padding: 13px; color: white; background: var(--art, linear-gradient(130deg, #46584b, #162f28)); }
+    .library-art::before, .library-art::after { position: absolute; content: ''; border: 1px solid rgb(255 255 255 / 18%); border-radius: 50%; }
+    .library-art::before { top: -59px; right: -19px; width: 163px; height: 163px; }
+    .library-art::after { top: -33px; right: 6px; width: 111px; height: 111px; }
+    .library-art span { position: relative; z-index: 1; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 600; text-shadow: 0 1px 7px rgb(0 0 0 / 24%); }
+    .library-details { padding: 12px; }
+    .library-details-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+    .library-details strong { display: block; font-size: 11px; font-weight: 600; }
+    .library-details p { margin: 4px 0 0; color: var(--muted); font-size: 9px; }
+    .library-time { margin-top: 13px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--forest); font-family: 'DM Mono', monospace; font-size: 11px; }
+    .library-time span { margin-left: 3px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 9px; }
+    .list-tools { display: flex; gap: 8px; align-items: center; }
+    .select-small { height: 32px; padding: 0 9px; border: 1px solid var(--line); border-radius: 5px; color: #60695e; background: white; font-size: 10px; }
+    .sessions-wrap { overflow: hidden; }
+    .sessions-wrap table { width: 100%; border-collapse: collapse; text-align: left; }
+    .sessions-wrap th { height: 38px; padding: 0 16px; color: #969c92; font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 400; letter-spacing: .8px; text-transform: uppercase; }
+    .sessions-wrap td { height: 52px; padding: 0 16px; border-top: 1px solid #f0f1ed; font-size: 10px; }
+    .delete-session { width: 26px; height: 26px; border: 0; color: #92988e; background: transparent; cursor: pointer; }
+    .delete-session:hover { color: var(--red); }
+    .stats-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 13px; }
+    .stat-wide { padding: 20px; }
+    .stat-wide .stat-value { font-size: 34px; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 16px; background: rgb(17 32 23 / 48%); backdrop-filter: blur(2px); }
+    .modal-backdrop.open { display: flex; animation: fade-in .16s; }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .modal { width: min(410px, 100%); padding: 22px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 22px 80px rgb(10 30 18 / 20%); animation: rise .2s both; }
+    .modal-heading { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 17px; }
+    .modal-heading h2 { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; }
+    .modal-heading p { margin: 5px 0 0; color: var(--muted); font-size: 10px; }
+    .modal-close { width: 29px; height: 29px; border: 1px solid var(--line); border-radius: 5px; background: white; cursor: pointer; }
+    .field { display: grid; gap: 6px; margin-bottom: 13px; }
+    .field label { color: #5c645a; font-size: 10px; font-weight: 600; }
+    .field input, .field select, .field textarea { width: 100%; min-height: 36px; padding: 8px 10px; border: 1px solid #e2e5de; border-radius: 5px; color: var(--ink); background: white; font-size: 11px; }
+    .field textarea { min-height: 65px; resize: vertical; }
+    .field-hint { color: var(--muted); font-size: 9px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 17px; padding-top: 13px; border-top: 1px solid var(--line); }
+    .timer-strip { position: fixed; right: 18px; bottom: 17px; z-index: 5; display: none; min-width: 250px; align-items: center; gap: 11px; padding: 10px 12px; border: 1px solid #345747; border-radius: 8px; color: #f2f5ed; background: var(--forest); box-shadow: 0 7px 24px rgb(18 50 34 / 18%); }
+    .timer-strip.visible { display: flex; }
+    .live-dot { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 4px rgb(196 239 120 / 15%); animation: pulse 1.7s infinite; }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 7px rgb(196 239 120 / 0%); } }
+    .timer-meta { flex: 1; min-width: 0; }
+    .timer-meta strong { display: block; overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .timer-value { display: block; margin-top: 3px; color: var(--lime); font-family: 'DM Mono', monospace; font-size: 13px; }
+    .timer-stop { min-height: 28px; padding: 0 9px; border: 0; border-radius: 5px; color: var(--forest); background: var(--lime); font-size: 9px; font-weight: 700; cursor: pointer; }
+    .toast { position: fixed; bottom: 18px; left: 50%; z-index: 15; padding: 10px 15px; border: 1px solid #355647; border-radius: 6px; color: white; background: var(--forest); font-size: 11px; opacity: 0; pointer-events: none; transform: translate(-50%, 9px); transition: .2s; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .fine-print { margin-top: 12px; color: #8a9087; font-size: 9px; line-height: 1.5; }
+    @media (min-width: 1500px) { .content { padding-top: 38px; } }
+    @media (max-width: 1050px) { .sidebar { width: 190px; } .main { margin-left: 190px; } .topbar { padding: 0 26px; } .content { padding: 27px 26px 48px; } .middle-grid { grid-template-columns: minmax(0, 1.3fr) minmax(215px, .8fr); } }
+    @media (max-width: 760px) { .sidebar { position: sticky; top: 0; width: 100%; height: auto; padding: 0 13px; flex-direction: row; align-items: center; justify-content: space-between; } .brand { padding: 10px 5px; font-size: 14px; } .brand-mark { width: 29px; height: 29px; } .brand small, .nav-label, .sidebar-bottom { display: none; } .nav { display: flex; gap: 1px; } .nav button { justify-content: center; width: 39px; height: 39px; padding: 0; color: #c1cec2; } .nav button span:last-child { display: none; } .nav-icon { font-size: 17px; } .main { margin-left: 0; } .topbar { position: static; height: 45px; padding: 0 17px; } .content { padding: 23px 16px 66px; } .stats-grid { grid-template-columns: repeat(2, 1fr); } .stat-card { min-height: 103px; } .middle-grid { grid-template-columns: 1fr; } .chart-body { height: 165px; } .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .page-heading { align-items: flex-start; } .page-heading h1 { font-size: 24px; } .heading-sub { max-width: 235px; line-height: 1.5; } .heading-actions { gap: 5px; } .heading-actions .button { min-height: 32px; padding: 0 9px; font-size: 10px; } .session-table th, .session-table td { padding-right: 10px; padding-left: 10px; } .activity-header { padding: 0 13px; } .sessions-wrap { overflow-x: auto; } .sessions-wrap table { min-width: 510px; } .timer-strip { right: 10px; bottom: 10px; left: 10px; min-width: 0; } }
+    @media (max-width: 430px) { .sync-state { font-size: 0; } .page-heading { flex-wrap: wrap; } .heading-actions { width: 100%; } .heading-actions .button { flex: 1; } .library-grid { gap: 8px; } .library-art { height: 88px; } .library-details { padding: 9px; } .stats-cards { grid-template-columns: 1fr; } .stat-wide { padding: 16px; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">SP</div><div>save point<small>your play, accounted for</small></div></div>
+      <div class="nav-label">Workspace</div>
+      <nav class="nav" aria-label="Main navigation">
+        <button class="active" data-view="overview"><span class="nav-icon" aria-hidden="true">◫</span><span>Overview</span></button>
+        <button data-view="library"><span class="nav-icon" aria-hidden="true">▣</span><span>My games</span></button>
+        <button data-view="sessions"><span class="nav-icon" aria-hidden="true">◷</span><span>Sessions</span></button>
+        <button data-view="stats"><span class="nav-icon" aria-hidden="true">▥</span><span>Insights</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-note"><div class="note-kicker">Your own little logbook</div><p>Playtime stays in this browser. Start a timer or log a session whenever you play.</p></div>
+        <div class="profile"><div class="avatar">SP</div><div><strong>Player</strong><span>Local tracker</span></div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar"><div class="breadcrumb">Save Point <span aria-hidden="true"> / </span> <strong id="crumb">Overview</strong></div><div class="topbar-right"><span class="sync-state"><span class="sync-dot"></span>Saved on this device</span><button class="icon-button" id="exportButton" title="Export sessions as CSV" aria-label="Export sessions as CSV">↓</button></div></header>
+      <div class="content">
+        <section class="view active" id="view-overview">
+          <div class="page-heading"><div><p class="eyebrow" id="todayLabel">YOUR PLAY, AT A GLANCE</p><h1>Good to see you, Player.</h1><p class="heading-sub">A little record of the worlds you've been spending time in.</p></div><div class="heading-actions"><button class="button" id="manualLogButton"><span aria-hidden="true">＋</span> Log a session</button><button class="button button-primary" id="startTimerButton"><span aria-hidden="true">▶</span> Start a timer</button></div></div>
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-top"><span class="stat-label">Total playtime</span><span class="stat-symbol">◷</span></div><div class="stat-value" id="totalHours">0<span class="stat-unit">hrs</span></div><div class="stat-hint">Across your whole library</div></article>
+            <article class="stat-card"><div class="stat-top"><span class="stat-label">This week</span><span class="stat-symbol">↗</span></div><div class="stat-value" id="weekHours">0<span class="stat-unit">hrs</span></div><div class="stat-hint">Since Monday</div></article>
+            <article class="stat-card"><div class="stat-top"><span class="stat-label">Sessions logged</span><span class="stat-symbol">▤</span></div><div class="stat-value" id="sessionCount">0</div><div class="stat-hint">Every session counts</div></article>
+            <article class="stat-card"><div class="stat-top"><span class="stat-label">In your library</span><span class="stat-symbol">▣</span></div><div class="stat-value" id="gameCount">0</div><div class="stat-hint">Games on your shelf</div></article>
+          </div>
+          <div class="middle-grid">
+            <section class="panel"><div class="panel-header"><div><h2 class="panel-title">Your week</h2><p class="panel-kicker">Hours played, day by day</p></div><span class="period-label" id="weekLabel">THIS WEEK</span></div><div class="chart-body"><div class="chart" id="weekChart" aria-label="Playtime by day this week"></div></div></section>
+            <section class="panel"><div class="panel-header"><div><h2 class="panel-title">Most played</h2><p class="panel-kicker">Your current favourites</p></div><button class="text-button" data-goto="library">All games →</button></div><div class="top-game-list" id="topGames"></div></section>
+          </div>
+          <section class="panel activity-panel"><div class="activity-header"><h2>Recent sessions</h2><button class="text-button" data-goto="sessions">All sessions →</button></div><div id="recentSessions"></div></section>
+        </section>
+
+        <section class="view" id="view-library">
+          <div class="page-heading"><div><p class="eyebrow">THE COLLECTION</p><h1>My games</h1><p class="heading-sub">The games you're making time for.</p></div><div class="heading-actions"><button class="button button-primary" id="addGameButton"><span aria-hidden="true">＋</span> Add a custom game</button></div></div>
+          <div class="library-toolbar"><div class="search-wrap"><span class="search-mark" aria-hidden="true">⌕</span><input id="gameSearch" type="search" placeholder="Find a game…" aria-label="Find a game"></div><select id="gameSort" class="select-small" aria-label="Sort games"><option value="recent">Recently added</option><option value="hours">Most played</option><option value="name">Name A–Z</option></select></div>
+          <div class="library-grid" id="libraryGrid"></div>
+        </section>
+
+        <section class="view" id="view-sessions">
+          <div class="page-heading"><div><p class="eyebrow">THE PLAYBACK</p><h1>Sessions</h1><p class="heading-sub">Every run, every detour, all in one place.</p></div><div class="heading-actions"><button class="button" id="sessionLogButton"><span aria-hidden="true">＋</span> Log a session</button></div></div>
+          <section class="panel sessions-wrap" id="sessionHistory"></section>
+        </section>
+
+        <section class="view" id="view-stats">
+          <div class="page-heading"><div><p class="eyebrow">THE BIG PICTURE</p><h1>Insights</h1><p class="heading-sub">A few numbers on how you spend your playtime.</p></div></div>
+          <div class="stats-cards" id="insights"></div>
+          <p class="fine-print">Save Point is an independent manual tracker. It does not connect to PlayStation Network or automatically retrieve account data.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="timer-strip" id="timerStrip" role="status" aria-live="polite"><span class="live-dot"></span><div class="timer-meta"><strong id="timerGame">Now playing</strong><span class="timer-value" id="timerValue">00:00:00</span></div><button class="timer-stop" id="stopTimerButton">Finish session</button></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="modal-backdrop" id="modalBackdrop" role="presentation"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-heading"><div><h2 id="modalTitle">Log a session</h2><p id="modalSubtitle">Add a little more to your play history.</p></div><button class="modal-close" id="modalClose" aria-label="Close dialog">×</button></div><form id="sessionForm"><div class="field"><label for="sessionGame">Game</label><select id="sessionGame" required></select></div><div class="field-row"><div class="field"><label for="sessionDate">Date</label><input id="sessionDate" type="date" required></div><div class="field"><label for="sessionDuration">Duration (minutes)</label><input id="sessionDuration" type="number" min="1" max="1440" placeholder="60" required></div></div><div class="field"><label for="sessionNote">Note <span style="color:#91968d;font-weight:400">(optional)</span></label><input id="sessionNote" type="text" maxlength="100" placeholder="Finally beat that boss…"></div><div class="modal-footer"><button class="button" type="button" id="modalCancel">Cancel</button><button class="button button-primary" type="submit">Save session</button></div></form><form id="gameForm" hidden><div class="field"><label for="gameName">Game title</label><input id="gameName" maxlength="60" placeholder="What are you playing?" required></div><div class="field-row"><div class="field"><label for="gamePlatform">Platform</label><select id="gamePlatform"><option>PS5</option><option>PS4</option><option>PS3</option><option>Other PlayStation</option></select></div><div class="field"><label for="gameColor">Cover color</label><select id="gameColor"><option value="green">Forest</option><option value="castle">Amber</option><option value="sci-fi">Ocean</option><option value="red">Coral</option><option value="blue">Indigo</option></select></div></div><div class="modal-footer"><button class="button" type="button" id="gameCancel">Cancel</button><button class="button button-primary" type="submit">Add to library</button></div></form></section></div>
+
+  <script>
+    const STORAGE_KEY = 'save-point-v1';
+    const starterGames = [
+      { id: 'g1', name: 'Astro Bot', platform: 'PS5', color: 'blue', added: 1 },
+      { id: 'g2', name: 'Baldur’s Gate 3', platform: 'PS5', color: 'castle', added: 2 },
+      { id: 'g3', name: 'Elden Ring', platform: 'PS5', color: 'green', added: 3 },
+      { id: 'g4', name: 'Final Fantasy VII Rebirth', platform: 'PS5', color: 'sci-fi', added: 4 },
+      { id: 'g5', name: 'God of War Ragnarök', platform: 'PS5', color: 'red', added: 5 },
+      { id: 'g6', name: 'Horizon Forbidden West', platform: 'PS5', color: 'green', added: 6 },
+      { id: 'g7', name: 'Gran Turismo 7', platform: 'PS5', color: 'red', added: 7 },
+      { id: 'g8', name: "Marvel's Spider-Man 2", platform: 'PS5', color: 'red', added: 8 },
+      { id: 'g9', name: 'Ratchet & Clank: Rift Apart', platform: 'PS5', color: 'sci-fi', added: 9 },
+      { id: 'g10', name: 'Returnal', platform: 'PS5', color: 'sci-fi', added: 10 },
+      { id: 'g11', name: "Ghost of Tsushima Director's Cut", platform: 'PS5', color: 'castle', added: 11 },
+      { id: 'g12', name: 'The Last of Us Part II Remastered', platform: 'PS5', color: 'green', added: 12 },
+      { id: 'g13', name: 'Uncharted: Legacy of Thieves Collection', platform: 'PS5', color: 'blue', added: 13 },
+      { id: 'g14', name: 'Helldivers 2', platform: 'PS5', color: 'green', added: 14 }
+    ];
+    const suggestedGames = [
+      { name: "Astro's Playroom", platform: 'PS5', color: 'blue' },
+      { name: "Demon's Souls", platform: 'PS5', color: 'castle' },
+      { name: "Marvel's Spider-Man: Miles Morales", platform: 'PS5', color: 'red' },
+      { name: 'Persona 3 Reload', platform: 'PS5', color: 'blue' },
+      { name: 'Street Fighter 6', platform: 'PS5', color: 'red' },
+      { name: 'Resident Evil 4', platform: 'PS5', color: 'castle' },
+      { name: 'Silent Hill 2', platform: 'PS5', color: 'green' },
+      { name: 'Sackboy: A Big Adventure', platform: 'PS5', color: 'blue' },
+      { name: 'The Last of Us Part I', platform: 'PS5', color: 'green' },
+      { name: 'Days Gone', platform: 'PS4', color: 'green' },
+      { name: 'Until Dawn', platform: 'PS5', color: 'castle' },
+      { name: 'Street Fighter 6', platform: 'PS4', color: 'red' }
+    ];
+    let ps5CatalogGames = [];
+    const today = () => new Date().toISOString().slice(0, 10);
+    const makeId = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    let state;
+    try {
+      state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || null;
+    } catch {
+      state = null;
+    }
+    if (!state || !Array.isArray(state.games) || !Array.isArray(state.sessions)) {
+      state = { games: starterGames, sessions: [], active: null, nextAdded: 15, starterVersion: 2 };
+    }
+    if (!Number.isFinite(state.nextAdded)) state.nextAdded = state.games.length + 1;
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => [...document.querySelectorAll(selector)];
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+    const save = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (state.starterVersion !== 2) {
+      const existingIds = new Set(state.games.map((game) => game.id));
+      state.games.push(...starterGames.filter((game) => !existingIds.has(game.id)));
+      state.nextAdded = Math.max(state.nextAdded, ...state.games.map((game) => (Number(game.added) || 0) + 1));
+      state.starterVersion = 2;
+      save();
+    }
+    const gameById = (id) => state.games.find((game) => game.id === id);
+    const sortedSessions = () => [...state.sessions].sort((a, b) => b.date.localeCompare(a.date) || (b.created || 0) - (a.created || 0));
+    const prettyDuration = (seconds) => {
+      const totalMinutes = Math.floor(seconds / 60);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      if (!hours && !minutes) return '< 1 min';
+      if (!hours) return `${minutes} min`;
+      return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+    };
+    const hoursValue = (seconds) => {
+      const hours = seconds / 3600;
+      return hours >= 10 ? String(Math.round(hours)) : hours >= 1 ? hours.toFixed(1).replace(/\.0$/, '') : '0';
+    };
+    const totalSeconds = (sessions) => sessions.reduce((sum, session) => sum + Number(session.seconds || 0), 0);
+    const colorClass = (color) => `cover-${['castle', 'sci-fi', 'green', 'red', 'blue'].includes(color) ? color : 'green'}`;
+    const coverText = (name) => name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+    const sessionMarkup = (session, showDelete = false, showNote = true) => {
+      const game = gameById(session.gameId);
+      const name = game?.name || session.gameName || 'Removed game';
+      const platform = game?.platform || session.platform || 'PlayStation';
+      return `<tr><td><div class="table-game"><div class="game-cover ${colorClass(game?.color)}">${escapeHtml(coverText(name))}</div>${escapeHtml(name)}</div></td><td>${escapeHtml(new Date(`${session.date}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }))}</td><td><span class="platform-pill">${escapeHtml(platform)}</span></td><td class="table-duration">${prettyDuration(session.seconds)}</td>${showNote ? `<td>${session.note ? escapeHtml(session.note) : '<span style="color:#b0b4ac">—</span>'}</td>` : ''}<td>${showDelete ? `<button class="delete-session" data-delete-session="${escapeHtml(session.id)}" aria-label="Delete session" title="Delete session">×</button>` : ''}</td></tr>`;
+    };
+    const emptyMarkup = (title, detail, action) => `<div class="empty-state"><span class="empty-mark">◷</span><strong>${title}</strong><span>${detail}</span>${action ? `<button class="button button-small" style="margin-top:12px" data-empty-action="${action}">＋ ${action === 'add-game' ? 'Add your first game' : 'Log your first session'}</button>` : ''}</div>`;
+
+    function renderOverview() {
+      const total = totalSeconds(state.sessions);
+      const now = new Date();
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+      const mondayKey = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
+      const week = state.sessions.filter((session) => session.date >= mondayKey);
+      $('#totalHours').innerHTML = `${hoursValue(total)}<span class="stat-unit">hrs</span>`;
+      $('#weekHours').innerHTML = `${hoursValue(totalSeconds(week))}<span class="stat-unit">hrs</span>`;
+      $('#sessionCount').textContent = state.sessions.length;
+      $('#gameCount').textContent = state.games.length;
+      $('#todayLabel').textContent = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(now).toUpperCase();
+      $('#weekLabel').textContent = `${monday.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} — TODAY`;
+      const days = Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + index);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const seconds = state.sessions.filter((session) => session.date === key).reduce((sum, session) => sum + Number(session.seconds || 0), 0);
+        return { key, label: date.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2), hours: seconds / 3600 };
+      });
+      const maxHours = Math.max(2, ...days.map((day) => day.hours));
+      const todayKey = today();
+      $('#weekChart').innerHTML = days.map((day) => `<div class="chart-day"><span class="chart-number">${day.hours ? (day.hours < 1 ? `${Math.round(day.hours * 60)}m` : `${Number(day.hours.toFixed(1))}h`) : ''}</span><div class="chart-track" title="${day.hours.toFixed(1)} hours"><div class="chart-bar ${day.key === todayKey ? 'today' : ''}" style="height:${day.hours ? Math.max(4, Math.round(day.hours / maxHours * 100)) : 0}%"></div></div><span class="chart-label ${day.key === todayKey ? 'today' : ''}">${day.label}</span></div>`).join('');
+      const gameTotals = new Map();
+      for (const session of state.sessions) gameTotals.set(session.gameId, (gameTotals.get(session.gameId) || 0) + Number(session.seconds || 0));
+      const top = state.games.map((game) => ({ game, seconds: gameTotals.get(game.id) || 0 })).sort((a, b) => b.seconds - a.seconds || a.game.added - b.game.added).slice(0, 4);
+      $('#topGames').innerHTML = top.length ? top.map(({ game, seconds }) => `<div class="top-game"><div class="game-cover ${colorClass(game.color)}">${escapeHtml(coverText(game.name))}</div><div class="game-info"><strong>${escapeHtml(game.name)}</strong><span>${escapeHtml(game.platform)}</span></div><div class="game-hours">${prettyDuration(seconds)}</div></div>`).join('') : emptyMarkup('No games in your library yet', 'Add a game to get started.', 'add-game');
+      const recent = sortedSessions().slice(0, 5);
+      $('#recentSessions').innerHTML = recent.length ? `<table class="session-table"><thead><tr><th>Game</th><th>Date</th><th>Platform</th><th>Time played</th><th></th></tr></thead><tbody>${recent.map((session) => sessionMarkup(session, false, false)).join('')}</tbody></table>` : emptyMarkup('Nothing logged just yet', 'Your play sessions will show up here.', state.games.length ? 'log-session' : 'add-game');
+    }
+
+    function renderLibrary() {
+      const query = $('#gameSearch').value.trim().toLowerCase();
+      const sort = $('#gameSort').value;
+      const totals = new Map();
+      for (const session of state.sessions) totals.set(session.gameId, (totals.get(session.gameId) || 0) + Number(session.seconds || 0));
+      const games = state.games.filter((game) => `${game.name} ${game.platform}`.toLowerCase().includes(query));
+      games.sort(sort === 'hours' ? (a, b) => (totals.get(b.id) || 0) - (totals.get(a.id) || 0) : sort === 'name' ? (a, b) => a.name.localeCompare(b.name) : (a, b) => b.added - a.added);
+      const cards = games.map((game) => `<article class="library-card"><div class="library-art ${colorClass(game.color)}"><span>${escapeHtml(game.name)}</span></div><div class="library-details"><div class="library-details-top"><div><strong>${escapeHtml(game.name)}</strong><p>${escapeHtml(game.platform)}</p></div><button class="text-button" data-remove-game="${escapeHtml(game.id)}" aria-label="Remove ${escapeHtml(game.name)} from library" title="Remove game">×</button></div><div class="library-time">${prettyDuration(totals.get(game.id) || 0)}<span>played</span></div></div></article>`).join('');
+      const empty = games.length ? '' : emptyMarkup(query ? 'No games match that search' : 'Your shelf is looking a little empty', query ? 'Try another title or platform.' : 'Add the games you want to keep track of.', '');
+      $('#libraryGrid').innerHTML = `${cards}${empty}<button class="custom-game-card" type="button" data-add-custom-game><span class="custom-game-plus" aria-hidden="true">＋</span><strong>Add a custom game</strong><span>Any PlayStation game, your pick.</span></button>`;
+    }
+
+    function renderSessions() {
+      const sessions = sortedSessions();
+      $('#sessionHistory').innerHTML = sessions.length ? `<table><thead><tr><th>Game</th><th>Date</th><th>Platform</th><th>Time played</th><th>Note</th><th></th></tr></thead><tbody>${sessions.map((session) => sessionMarkup(session, true)).join('')}</tbody></table>` : emptyMarkup('No sessions yet', 'When you play, log a session here.', state.games.length ? 'log-session' : 'add-game');
+    }
+
+    function renderInsights() {
+      const total = totalSeconds(state.sessions);
+      const totals = new Map();
+      for (const session of state.sessions) totals.set(session.gameId, (totals.get(session.gameId) || 0) + Number(session.seconds || 0));
+      const mostPlayed = [...totals.entries()].sort((a, b) => b[1] - a[1])[0];
+      const longest = [...state.sessions].sort((a, b) => b.seconds - a.seconds)[0];
+      const avg = state.sessions.length ? total / state.sessions.length : 0;
+      const entries = [
+        ['Lifetime playtime', prettyDuration(total), 'Across all your logged sessions'],
+        ['Average session', prettyDuration(avg), 'A little time to unwind'],
+        ['Most played game', mostPlayed ? gameById(mostPlayed[0])?.name || 'Removed game' : 'Not yet', mostPlayed ? `${prettyDuration(mostPlayed[1])} played` : 'Log a session to find out'],
+        ['Longest session', longest ? prettyDuration(longest.seconds) : 'Not yet', longest ? `Your session on ${new Date(`${longest.date}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : 'Your personal best is waiting']
+      ];
+      $('#insights').innerHTML = entries.map(([label, value, hint]) => `<article class="panel stat-wide"><span class="stat-label">${escapeHtml(label)}</span><div class="stat-value">${escapeHtml(value)}</div><div class="stat-hint">${escapeHtml(hint)}</div></article>`).join('');
+    }
+
+    function renderGameOptions() {
+      $('#sessionGame').innerHTML = state.games.length ? state.games.map((game) => `<option value="${escapeHtml(game.id)}">${escapeHtml(game.name)} · ${escapeHtml(game.platform)}</option>`).join('') : '<option value="">Add a game to your library first</option>';
+      $('#sessionGame').disabled = !state.games.length;
+      $('#sessionForm button[type="submit"]').disabled = !state.games.length;
+    }
+
+    function setupGameSuggestions() {
+      const input = $('#gameName');
+      input.setAttribute('list', 'ps5GameCatalog');
+      const catalog = document.createElement('datalist');
+      catalog.id = 'ps5GameCatalog';
+      $('#gameForm').append(catalog);
+      const hint = document.createElement('span');
+      hint.id = 'gameCatalogHint';
+      hint.className = 'field-hint';
+      hint.textContent = 'Search the PS5 catalog A–Z, or type any custom title.';
+      input.closest('.field').append(hint);
+      const durationField = document.createElement('div');
+      durationField.className = 'field';
+      const durationLabel = document.createElement('label');
+      durationLabel.htmlFor = 'initialGameDuration';
+      durationLabel.textContent = 'Playtime to log (minutes)';
+      const durationInput = document.createElement('input');
+      durationInput.id = 'initialGameDuration';
+      durationInput.type = 'number';
+      durationInput.min = '1';
+      durationInput.max = '1440';
+      durationInput.step = '1';
+      durationInput.placeholder = 'Optional';
+      const durationHint = document.createElement('span');
+      durationHint.className = 'field-hint';
+      durationHint.textContent = 'Adds a session dated today. Leave blank to add only the game.';
+      durationField.append(durationLabel, durationInput, durationHint);
+      $('#gameForm').querySelector('.modal-footer').before(durationField);
+      input.addEventListener('change', () => {
+        const name = input.value.trim().toLocaleLowerCase();
+        const catalogTitle = ps5CatalogGames.find((title) => title.toLocaleLowerCase() === name);
+        if (!catalogTitle) return;
+        $('#gamePlatform').value = 'PS5';
+        const artwork = [...starterGames, ...suggestedGames].find((game) => game.name.toLocaleLowerCase() === name);
+        if (artwork) $('#gameColor').value = artwork.color;
+      });
+    }
+
+    function renderGameSuggestions() {
+      const catalog = $('#ps5GameCatalog');
+      if (!catalog) return;
+      const existingGames = new Set(state.games.filter((game) => game.platform === 'PS5').map((game) => game.name.trim().toLocaleLowerCase()));
+      const titles = [...new Set([
+        ...ps5CatalogGames,
+        ...starterGames.filter((game) => game.platform === 'PS5').map((game) => game.name),
+        ...suggestedGames.filter((game) => game.platform === 'PS5').map((game) => game.name)
+      ])].filter((title) => !existingGames.has(title.trim().toLocaleLowerCase()));
+      titles.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+      catalog.replaceChildren(...titles.map((title) => {
+        const option = document.createElement('option');
+        option.value = title;
+        return option;
+      }));
+      $('#gameCatalogHint').textContent = ps5CatalogGames.length
+        ? `Search ${ps5CatalogGames.length.toLocaleString()} released PS5 games A–Z, or type any custom title.`
+        : 'Search the PS5 catalog A–Z, or type any custom title.';
+    }
+
+    function render() {
+      renderOverview();
+      renderLibrary();
+      renderSessions();
+      renderInsights();
+      renderGameOptions();
+      renderGameSuggestions();
+      renderTimer();
+    }
+
+    function showToast(message) {
+      const toast = $('#toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(showToast.timeout);
+      showToast.timeout = setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    function setView(name) {
+      $$('.view').forEach((view) => view.classList.toggle('active', view.id === `view-${name}`));
+      $$('.nav button').forEach((button) => button.classList.toggle('active', button.dataset.view === name));
+      $('#crumb').textContent = ({ overview: 'Overview', library: 'My games', sessions: 'Sessions', stats: 'Insights' })[name];
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openModal(mode) {
+      const isGame = mode === 'game';
+      $('#sessionForm').hidden = isGame;
+      $('#gameForm').hidden = !isGame;
+      $('#sessionDuration').closest('.field-row').hidden = false;
+      $('#sessionNote').closest('.field').hidden = false;
+      $('#sessionDate').closest('.field').hidden = false;
+      $('#sessionForm button[type="submit"]').textContent = 'Save session';
+      $('#modalTitle').textContent = isGame ? 'Add a game' : 'Log a session';
+      $('#modalSubtitle').textContent = isGame ? 'Put something good on your shelf.' : 'Add a little more to your play history.';
+      $('#modalBackdrop').classList.add('open');
+      if (isGame) $('#gameName').focus();
+      else { $('#sessionDate').value = today(); $('#sessionGame').focus(); }
+    }
+
+    function closeModal() {
+      $('#modalBackdrop').classList.remove('open');
+      $('#sessionForm').reset();
+      $('#gameForm').reset();
+    }
+
+    let timerInterval;
+    function renderTimer() {
+      const active = state.active;
+      $('#timerStrip').classList.toggle('visible', Boolean(active));
+      if (!active) { clearInterval(timerInterval); return; }
+      const game = gameById(active.gameId);
+      $('#timerGame').textContent = game ? `Playing ${game.name}` : 'Play session in progress';
+      const elapsed = Math.max(0, Math.floor((Date.now() - active.startedAt) / 1000));
+      const hours = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+      const minutes = String(Math.floor(elapsed % 3600 / 60)).padStart(2, '0');
+      const seconds = String(elapsed % 60).padStart(2, '0');
+      $('#timerValue').textContent = `${hours}:${minutes}:${seconds}`;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(renderTimer, 1000);
+    }
+
+    function finishTimer() {
+      if (!state.active) return;
+      const active = state.active;
+      const game = gameById(active.gameId);
+      const seconds = Math.max(1, Math.floor((Date.now() - active.startedAt) / 1000));
+      if (game) state.sessions.push({ id: makeId(), gameId: game.id, gameName: game.name, platform: game.platform, seconds, date: today(), note: '', created: Date.now() });
+      state.active = null;
+      save();
+      render();
+      showToast(`Session saved · ${prettyDuration(seconds)}`);
+    }
+
+    $$('.nav button').forEach((button) => button.addEventListener('click', () => setView(button.dataset.view)));
+    $$('[data-goto]').forEach((button) => button.addEventListener('click', () => setView(button.dataset.goto)));
+    $('#manualLogButton').addEventListener('click', () => state.games.length ? openModal('session') : (setView('library'), openModal('game')));
+    $('#sessionLogButton').addEventListener('click', () => openModal('session'));
+    $('#addGameButton').addEventListener('click', () => openModal('game'));
+    $('#startTimerButton').addEventListener('click', () => {
+      if (!state.games.length) { setView('library'); openModal('game'); return; }
+      if (state.active) { showToast('Finish your current session before starting another.'); return; }
+      openModal('session');
+      $('#modalTitle').textContent = 'Start a timer';
+      $('#modalSubtitle').textContent = 'We’ll keep time until you finish your session.';
+      $('#sessionDuration').closest('.field-row').hidden = true;
+      $('#sessionNote').closest('.field').hidden = true;
+      $('#sessionDate').closest('.field').hidden = true;
+      $('#sessionForm button[type="submit"]').textContent = 'Start playing';
+    });
+    $('#sessionForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const game = gameById($('#sessionGame').value);
+      if (!game) return;
+      const startingTimer = $('#modalTitle').textContent === 'Start a timer';
+      if (startingTimer) {
+        state.active = { gameId: game.id, startedAt: Date.now() };
+        save();
+        closeModal();
+        $('#sessionDuration').closest('.field-row').hidden = false;
+        $('#sessionNote').closest('.field').hidden = false;
+        $('#sessionDate').closest('.field').hidden = false;
+        $('#sessionForm button[type="submit"]').textContent = 'Save session';
+        render();
+        showToast(`Timer started · ${game.name}`);
+        return;
+      }
+      state.sessions.push({ id: makeId(), gameId: game.id, gameName: game.name, platform: game.platform, date: $('#sessionDate').value, seconds: Number($('#sessionDuration').value) * 60, note: $('#sessionNote').value.trim(), created: Date.now() });
+      save();
+      closeModal();
+      render();
+      showToast('Session added to your log.');
+    });
+    $('#gameForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = $('#gameName').value.trim();
+      if (!name) return;
+      const platform = $('#gamePlatform').value;
+      if (state.games.some((game) => game.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase() && game.platform === platform)) {
+        showToast('That game is already in your library.');
+        return;
+      }
+      const game = { id: makeId(), name, platform, color: $('#gameColor').value, added: state.nextAdded++ };
+      const durationMinutes = Number($('#initialGameDuration').value);
+      state.games.push(game);
+      if (durationMinutes > 0) {
+        state.sessions.push({ id: makeId(), gameId: game.id, gameName: game.name, platform: game.platform, date: today(), seconds: durationMinutes * 60, note: '', created: Date.now() });
+      }
+      save();
+      closeModal();
+      render();
+      showToast(durationMinutes > 0 ? `${name} added · ${prettyDuration(durationMinutes * 60)} logged.` : `${name} added to your shelf.`);
+    });
+    $('#stopTimerButton').addEventListener('click', finishTimer);
+    $('#modalClose').addEventListener('click', closeModal);
+    $('#modalCancel').addEventListener('click', closeModal);
+    $('#gameCancel').addEventListener('click', closeModal);
+    $('#modalBackdrop').addEventListener('click', (event) => { if (event.target === $('#modalBackdrop')) closeModal(); });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeModal(); });
+    $('#gameSearch').addEventListener('input', renderLibrary);
+    $('#gameSort').addEventListener('change', renderLibrary);
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('[data-add-custom-game]')) { openModal('game'); return; }
+      const removeButton = event.target.closest('[data-remove-game]');
+      if (removeButton) {
+        const game = gameById(removeButton.dataset.removeGame);
+        if (!game || !window.confirm(`Remove ${game.name} from your library? Its past sessions will stay in your history.`)) return;
+        state.games = state.games.filter((entry) => entry.id !== game.id);
+        save();
+        render();
+        showToast(`${game.name} removed from your library.`);
+        return;
+      }
+      const deleteButton = event.target.closest('[data-delete-session]');
+      if (deleteButton) {
+        state.sessions = state.sessions.filter((session) => session.id !== deleteButton.dataset.deleteSession);
+        save();
+        render();
+        showToast('Session removed.');
+        return;
+      }
+      const emptyAction = event.target.closest('[data-empty-action]');
+      if (emptyAction) openModal(emptyAction.dataset.emptyAction === 'add-game' ? 'game' : 'session');
+    });
+    $('#exportButton').addEventListener('click', () => {
+      if (!state.sessions.length) { showToast('Log a session first, then export your history.'); return; }
+      const rows = [['Game', 'Platform', 'Date', 'Duration minutes', 'Note'], ...sortedSessions().map((session) => [gameById(session.gameId)?.name || session.gameName || 'Removed game', gameById(session.gameId)?.platform || session.platform || 'PlayStation', session.date, Math.round(session.seconds / 60), session.note || ''])];
+      const csv = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+      link.download = 'save-point-sessions.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast('Your session history has been exported.');
+    });
+
+    setupGameSuggestions();
+    $('#gameSort').value = 'name';
+    render();
+    fetch('./ps5-games.json')
+      .then((response) => {
+        if (!response.ok) throw new Error('The PS5 catalog could not be loaded.');
+        return response.json();
+      })
+      .then((catalog) => {
+        if (!Array.isArray(catalog.games)) throw new Error('The PS5 catalog is invalid.');
+        ps5CatalogGames = catalog.games;
+        renderGameSuggestions();
+      })
+      .catch(() => {
+        $('#gameCatalogHint').textContent = 'PS5 catalog unavailable; you can still type any custom title.';
+      });
+  </script>
+</body>
+</html>
